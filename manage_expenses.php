@@ -8,23 +8,23 @@ if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('
     die("Accès refusé.");
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id']) && isset($_GET['action'])) {
-    $expenseId = $_GET['id'];
-    $action = $_GET['action'];
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset($_POST['action'])) {
+    $expenseId = $_POST['expense_id'];
+    $action = $_POST['action'];
+    $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
 
-    // Récupérer les infos de la note de frais
     $stmt = $pdo->prepare("SELECT expenses.*, users.email FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
     $stmt->execute([$expenseId]);
     $expense = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($expense) {
-        $updateStmt = $pdo->prepare("UPDATE expenses SET status = ? WHERE id = ?");
-        $updateStmt->execute([$action, $expenseId]);
+        $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
+        $updateStmt->execute([$action, $reason, $expenseId]);
 
         if ($action == "validé") {
             sendExpenseApprovalEmail($expense['email'], $expenseId);
         } elseif ($action == "rejeté") {
-            sendExpenseRejectionEmail($expense['email'], $expenseId, "Votre note de frais a été refusée.");
+            sendExpenseRejectionEmail($expense['email'], $expenseId, $reason);
         }
     }
     header("Location: manage_expenses.php");
@@ -42,6 +42,15 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestion des Notes de Frais</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script>
+        function rejectExpense(id) {
+            let reason = prompt("Veuillez entrer la raison du rejet :");
+            if (reason !== null && reason.trim() !== "") {
+                document.getElementById('rejectForm' + id).reason.value = reason;
+                document.getElementById('rejectForm' + id).submit();
+            }
+        }
+    </script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -100,7 +109,12 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td>
                             <?php if (hasPermission('manager') && $expense['status'] == 'en attente'): ?>
                                 <a href="manage_expenses.php?id=<?= $expense['id'] ?>&action=validé" class="btn btn-success btn-sm">✔️ Valider</a>
-                                <a href="manage_expenses.php?id=<?= $expense['id'] ?>&action=rejeté" class="btn btn-warning btn-sm">❌ Rejeter</a>
+                                <form id="rejectForm<?= $expense['id'] ?>" method="POST" action="manage_expenses.php" style="display:inline;">
+                                    <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
+                                    <input type="hidden" name="action" value="rejeté">
+                                    <input type="hidden" name="reason">
+                                    <button type="button" class="btn btn-warning btn-sm" onclick="rejectExpense(<?= $expense['id'] ?>)">❌ Rejeter</button>
+                                </form>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
@@ -112,3 +126,4 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </body>
 </html>
+
