@@ -6,13 +6,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $newPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
     // Vérifier le token
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE reset_token = ?");
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE password_reset_token = ?");
     $stmt->execute([$token]);
     $user = $stmt->fetch();
 
     if ($user) {
         // Mettre à jour le mot de passe et supprimer le token
-        $stmt = $pdo->prepare("UPDATE users SET password = ?, reset_token = NULL WHERE reset_token = ?");
+        $stmt = $pdo->prepare("UPDATE users SET password = ?, password_reset_token = NULL WHERE password_reset_token = ?");
         $stmt->execute([$newPassword, $token]);
 
         echo "Mot de passe mis à jour. Vous pouvez maintenant vous connecter.";
