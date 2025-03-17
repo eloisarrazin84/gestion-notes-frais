@@ -1,5 +1,19 @@
 <?php
 function renderEmailTemplate($name, $expenseId, $status, $reason = '') {
+    // Définition des variables utilisées dans le template
+    $title = "Notification de Note de Frais";
+    $message = "<p>Bonjour $name,</p>";
+
+    if ($status == "validé") {
+        $message .= "<p>Votre note de frais (#$expenseId) a été <strong>validée</strong>.</p>";
+    } elseif ($status == "rejeté") {
+        $message .= "<p>Votre note de frais (#$expenseId) a été <strong>rejetée</strong>.</p>";
+        $message .= "<p>Raison du rejet : <em>$reason</em></p>";
+    }
+
+    $buttonText = "Voir mes notes de frais";
+    $buttonLink = "http://votre-site.com/manage_expenses.php";
+
     return '
     <!DOCTYPE html>
     <html lang="fr">
@@ -61,8 +75,8 @@ function renderEmailTemplate($name, $expenseId, $status, $reason = '') {
         <div class="email-container">
             <div class="header">' . htmlspecialchars($title) . '</div>
             <div class="content">
-                <p>' . nl2br(htmlspecialchars($message)) . '</p>'
-                . ($buttonText && $buttonLink ? '<a href="' . htmlspecialchars($buttonLink) . '" class="btn">' . htmlspecialchars($buttonText) . '</a>' : '') . '
+                ' . nl2br(htmlspecialchars($message)) . '
+                <p><a href="' . htmlspecialchars($buttonLink) . '" class="btn">' . htmlspecialchars($buttonText) . '</a></p>
             </div>
             <div class="footer">
                 Cet e-mail est généré automatiquement, merci de ne pas y répondre.<br>
