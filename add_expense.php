@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date = $_POST['date'];
     $amount = $_POST['amount'];
     $category = $_POST['category'];
-    $justification = $_POST['justification'];
+    $justification = isset($_POST['justification']) ? $_POST['justification'] : NULL;
     $receiptPaths = [];
 
     // Gestion de l'upload de plusieurs fichiers
@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insérer les données en base
     $stmt = $pdo->prepare("INSERT INTO expenses (user_id, date, amount, category, justification, receipt) VALUES (?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$user_id, $date, $amount, $category, $justification, $receiptPathsStr])) {
+    if ($stmt->execute([$user_id, $date, $amount, $category, $justification ?? NULL, $receiptPathsStr]) {
         header("Location: dashboard.php?success=1");
         exit();
     } else {
