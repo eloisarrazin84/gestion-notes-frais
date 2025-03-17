@@ -19,6 +19,7 @@ function sendEmail($to, $subject, $body, $buttonText = '', $buttonLink = '') {
         // Encodage UTF-8 pour éviter les problèmes d'accents
         $mail->CharSet = 'UTF-8';
         $mail->Encoding = 'base64';
+        $mail->ContentType = "text/html; charset=UTF-8";
 
         // Expéditeur et destinataire
         $mail->setFrom('eloi@bewitness.fr', 'Gestion Notes de Frais');
