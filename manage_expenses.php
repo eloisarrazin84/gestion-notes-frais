@@ -3,6 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'permissions.php';
 require_once 'mail.php';
+require_once 'email_template.php';
 
 if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('admin')) {
     die("Accès refusé.");
@@ -13,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset
     $action = $_POST['action'];
     $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
 
-    $stmt = $pdo->prepare("SELECT expenses.*, users.email FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
+    $stmt = $pdo->prepare("SELECT expenses.*, users.email, users.name FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
     $stmt->execute([$expenseId]);
     $expense = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -21,10 +22,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset
         $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
         $updateStmt->execute([$action, $reason, $expenseId]);
 
+        $emailBody = renderEmailTemplate($expense['name'], $expenseId, $action, $reason);
+        
         if ($action == "validé") {
-            sendExpenseApprovalEmail($expense['email'], $expenseId);
+            sendEmail($expense['email'], "Votre note de frais a été validée", $emailBody);
         } elseif ($action == "rejeté") {
-            sendExpenseRejectionEmail($expense['email'], $expenseId, $reason);
+            sendEmail($expense['email'], "Votre note de frais a été rejetée", $emailBody);
         }
     }
     header("Location: manage_expenses.php");
@@ -109,10 +112,10 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td>
                             <?php if (hasPermission('manager') && $expense['status'] == 'en attente'): ?>
                                <form method="POST" action="manage_expenses.php" style="display:inline;">
-    <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
-    <input type="hidden" name="action" value="validé">
-    <button type="submit" class="btn btn-success btn-sm">✔️ Valider</button>
-</form>
+                                   <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
+                                   <input type="hidden" name="action" value="validé">
+                                   <button type="submit" class="btn btn-success btn-sm">✔️ Valider</button>
+                               </form>
 
                                 <form id="rejectForm<?= $expense['id'] ?>" method="POST" action="manage_expenses.php" style="display:inline;">
                                     <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
