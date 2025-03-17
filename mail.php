@@ -27,7 +27,7 @@ function sendEmail($to, $subject, $body) {
         // Contenu de l'email
         $mail->isHTML(true);
         $mail->Subject = $subject;
-        $mail->Body = getEmailTemplate($subject, $message, $buttonText, $buttonLink); // Utilisation du template
+        $mail->Body = renderEmailTemplate($subject, $message, $buttonText, $buttonLink); // Utilisation du template
 
         // Envoi de l'email
         $mail->send();
