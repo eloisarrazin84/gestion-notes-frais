@@ -18,18 +18,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset
     $stmt->execute([$expenseId]);
     $expense = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($expense) {
-        $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
-        $updateStmt->execute([$action, $reason, $expenseId]);
+    iif ($expense) {
+    $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
+    $updateStmt->execute([$action, $reason, $expenseId]);
 
-        $title = ($action == "validé") ? "Votre note de frais a été validée" : "Votre note de frais a été rejetée";
-        $message = "Bonjour " . htmlspecialchars($expense['name']) . ",<br><br>Votre note de frais (#" . $expenseId . ") a été <b>" . $action . "</b>.";
-        if ($action == "rejeté") {
-            $message .= "<br><br>Raison : " . htmlspecialchars($reason);
-        }
-        $emailBody = renderEmailTemplate($title, $message);
-        sendEmail($expense['email'], $title, $emailBody);
+    // Définition du titre et du message de l'email
+    $title = ($action == "validé") ? "Votre note de frais a été validée" : "Votre note de frais a été rejetée";
+    $message = "Bonjour " . htmlspecialchars($expense['name']) . ",<br><br>Votre note de frais (#" . $expenseId . ") a été <b>" . $action . "</b>.";
+
+    $buttonText = "Voir ma note de frais";
+    $buttonLink = "http://votre-site.com/expenses.php?id=" . $expenseId; // Lien vers la note de frais
+
+    if ($action == "rejeté") {
+        $message .= "<br><br><b>Raison :</b> " . htmlspecialchars($reason);
     }
+
+    $emailBody = renderEmailTemplate($title, $message, $buttonText, $buttonLink);
+    sendEmail($expense['email'], $title, $emailBody, $buttonText, $buttonLink);
+}
     header("Location: manage_expenses.php");
     exit;
 }
