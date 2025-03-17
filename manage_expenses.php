@@ -2,12 +2,36 @@
 session_start();
 require_once 'config.php';
 require_once 'permissions.php';
+require_once 'mail.php';
 
 if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('admin')) {
     die("Accès refusé.");
 }
 
-$stmt = $pdo->query("SELECT expenses.*, users.name FROM expenses JOIN users ON expenses.user_id = users.id ORDER BY created_at DESC");
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id']) && isset($_GET['action'])) {
+    $expenseId = $_GET['id'];
+    $action = $_GET['action'];
+
+    // Récupérer les infos de la note de frais
+    $stmt = $pdo->prepare("SELECT expenses.*, users.email FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
+    $stmt->execute([$expenseId]);
+    $expense = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($expense) {
+        $updateStmt = $pdo->prepare("UPDATE expenses SET status = ? WHERE id = ?");
+        $updateStmt->execute([$action, $expenseId]);
+
+        if ($action == "validé") {
+            sendExpenseApprovalEmail($expense['email'], $expenseId);
+        } elseif ($action == "rejeté") {
+            sendExpenseRejectionEmail($expense['email'], $expenseId, "Votre note de frais a été refusée.");
+        }
+    }
+    header("Location: manage_expenses.php");
+    exit;
+}
+
+$stmt = $pdo->query("SELECT expenses.*, users.name, users.email FROM expenses JOIN users ON expenses.user_id = users.id ORDER BY created_at DESC");
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -75,8 +99,8 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </td>
                         <td>
                             <?php if (hasPermission('manager') && $expense['status'] == 'en attente'): ?>
-                                <a href="validate_expense.php?id=<?= $expense['id'] ?>&action=validé" class="btn btn-success btn-sm">✔️ Valider</a>
-                                <a href="validate_expense.php?id=<?= $expense['id'] ?>&action=rejeté" class="btn btn-warning btn-sm">❌ Rejeter</a>
+                                <a href="manage_expenses.php?id=<?= $expense['id'] ?>&action=validé" class="btn btn-success btn-sm">✔️ Valider</a>
+                                <a href="manage_expenses.php?id=<?= $expense['id'] ?>&action=rejeté" class="btn btn-warning btn-sm">❌ Rejeter</a>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
