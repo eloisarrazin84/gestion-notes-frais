@@ -35,7 +35,9 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-        .btn-back {
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 15px;
         }
         .table th {
@@ -51,8 +53,10 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <div class="container mt-5">
         <h2 class="text-center">Mes Notes de Frais</h2>
-        <a href="home.php" class="btn btn-secondary btn-back">🏠 Retour à l'accueil</a>
-        <a href="export_pdf.php" class="btn btn-primary">📄 Exporter en PDF</a>
+        <div class="btn-container">
+            <a href="home.php" class="btn btn-secondary">🏠 Retour à l'accueil</a>
+            <a href="export_pdf.php" class="btn btn-primary">📄 Exporter en PDF</a>
+        </div>
         <table class="table table-striped mt-3">
             <thead>
                 <tr>
