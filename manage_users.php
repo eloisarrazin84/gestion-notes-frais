@@ -70,6 +70,17 @@ $users = $pdo->query("SELECT id, name, email, role FROM users")->fetchAll();
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
+        .btn-back {
+            margin-bottom: 15px;
+        }
+        .table th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+        .table td {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
