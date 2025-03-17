@@ -9,10 +9,10 @@ if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('
     die("Accès refusé.");
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset($_POST['action'])) {
-    $expenseId = $_POST['expense_id'];
-    $action = $_POST['action'];
-    $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
+if (\$_SERVER["REQUEST_METHOD"] == "POST" && isset(\$_POST['expense_id']) && isset(\$_POST['action'])) {
+    $expenseId = \$_POST['expense_id'];
+    $action = \$_POST['action'];
+    $reason = isset(\$_POST['reason']) ? \$_POST['reason'] : '';
 
     $stmt = $pdo->prepare("SELECT expenses.*, users.email, users.name FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
     $stmt->execute([$expenseId]);
@@ -22,13 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset
         $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
         $updateStmt->execute([$action, $reason, $expenseId]);
 
-        $emailBody = renderEmailTemplate($expense['name'], $expenseId, $action, $reason);
-        
-        if ($action == "validé") {
-            sendEmail($expense['email'], "Votre note de frais a été validée", $emailBody);
-        } elseif ($action == "rejeté") {
-            sendEmail($expense['email'], "Votre note de frais a été rejetée", $emailBody);
+        $title = ($action == "validé") ? "Votre note de frais a été validée" : "Votre note de frais a été rejetée";
+        $message = "Bonjour " . htmlspecialchars($expense['name']) . ",<br><br>Votre note de frais (#" . $expenseId . ") a été <b>" . $action . "</b>.";
+        if ($action == "rejeté") {
+            $message .= "<br><br>Raison : " . htmlspecialchars($reason);
         }
+        $emailBody = renderEmailTemplate($title, $message);
+        sendEmail($expense['email'], $title, $emailBody);
     }
     header("Location: manage_expenses.php");
     exit;
