@@ -9,10 +9,10 @@ if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('
     die("Accès refusé.");
 }
 
-if (\$_SERVER["REQUEST_METHOD"] == "POST" && isset(\$_POST['expense_id']) && isset(\$_POST['action'])) {
-    $expenseId = \$_POST['expense_id'];
-    $action = \$_POST['action'];
-    $reason = isset(\$_POST['reason']) ? \$_POST['reason'] : '';
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset($_POST['action'])) {
+    $expenseId = $_POST['expense_id'];
+    $action = $_POST['action'];
+    $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
 
     $stmt = $pdo->prepare("SELECT expenses.*, users.email, users.name FROM expenses JOIN users ON expenses.user_id = users.id WHERE expenses.id = ?");
     $stmt->execute([$expenseId]);
