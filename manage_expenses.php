@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['expense_id']) && isset
     $stmt->execute([$expenseId]);
     $expense = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    iif ($expense) {
+    if ($expense) {
     $updateStmt = $pdo->prepare("UPDATE expenses SET status = ?, rejection_reason = ? WHERE id = ?");
     $updateStmt->execute([$action, $reason, $expenseId]);
 
