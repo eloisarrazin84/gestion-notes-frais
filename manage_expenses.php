@@ -108,7 +108,12 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </td>
                         <td>
                             <?php if (hasPermission('manager') && $expense['status'] == 'en attente'): ?>
-                                <a href="manage_expenses.php?id=<?= $expense['id'] ?>&action=validé" class="btn btn-success btn-sm">✔️ Valider</a>
+                               <form method="POST" action="manage_expenses.php" style="display:inline;">
+    <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
+    <input type="hidden" name="action" value="validé">
+    <button type="submit" class="btn btn-success btn-sm">✔️ Valider</button>
+</form>
+
                                 <form id="rejectForm<?= $expense['id'] ?>" method="POST" action="manage_expenses.php" style="display:inline;">
                                     <input type="hidden" name="expense_id" value="<?= $expense['id'] ?>">
                                     <input type="hidden" name="action" value="rejeté">
