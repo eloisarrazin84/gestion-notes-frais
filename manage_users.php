@@ -14,25 +14,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create_user'])) {
     $email = $_POST['email'];
     $role = $_POST['role'];
     
-    // Vérifier si l'utilisateur existe déjà
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         $errorMessage = "L'utilisateur existe déjà.";
     } else {
-        // Générer un token pour la création du mot de passe
         $token = bin2hex(random_bytes(50));
-        
-        // Insérer l'utilisateur avec le token
         $stmt = $pdo->prepare("INSERT INTO users (name, email, role, password_reset_token) VALUES (?, ?, ?, ?)");
         $stmt->execute([$name, $email, $role, $token]);
         
-        // Envoyer l'email de création de compte
         $resetLink = "http://" . $_SERVER['HTTP_HOST'] . "/reset_password.php?token=" . $token;
         $subject = "Création de votre compte";
         $body = "<p>Bonjour $name,</p><p>Un compte a été créé pour vous. Veuillez définir votre mot de passe en cliquant sur le lien suivant :</p><p><a href='$resetLink'>$resetLink</a></p>";
         sendEmail($email, $subject, $body);
-
         $successMessage = "Utilisateur créé avec succès. Un email a été envoyé pour définir le mot de passe.";
     }
 }
@@ -41,12 +35,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['create_user'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_role'])) {
     $userId = $_POST['user_id'];
     $newRole = $_POST['role'];
-    
     $stmt = $pdo->prepare("UPDATE users SET role = ? WHERE id = ?");
     $stmt->execute([$newRole, $userId]);
-    
     sendRoleChangeEmail($email, $newRole);
     $successMessage = "Le rôle a été mis à jour.";
+}
+
+// Suppression d'un utilisateur
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_user'])) {
+    $userId = $_POST['user_id'];
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $successMessage = "L'utilisateur a été supprimé avec succès.";
 }
 
 $users = $pdo->query("SELECT id, name, email, role FROM users")->fetchAll();
@@ -126,6 +126,7 @@ $users = $pdo->query("SELECT id, name, email, role FROM users")->fetchAll();
                     <th>Nom</th>
                     <th>Email</th>
                     <th>Rôle</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -142,7 +143,8 @@ $users = $pdo->query("SELECT id, name, email, role FROM users")->fetchAll();
                                     <option value="comptable" <?= $user['role'] == 'comptable' ? 'selected' : '' ?>>Comptable</option>
                                     <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
                                 </select>
-                                <button type="submit" name="update_role" class="btn btn-primary">Modifier</button>
+                                <button type="submit" name="update_role" class="btn btn-primary me-2">Modifier</button>
+                                <button type="submit" name="delete_user" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</button>
                             </form>
                         </td>
                     </tr>
