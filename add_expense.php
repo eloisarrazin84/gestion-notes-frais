@@ -15,9 +15,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $justification = isset($_POST['justification']) ? $_POST['justification'] : NULL;
     $receiptPaths = [];
 
-    // Gestion de l'upload de plusieurs fichiers
-    if (!empty($_FILES['receipts']['name'][0])) {
+    // Vérification si des fichiers ont été uploadés
+    if (isset($_FILES['receipts']) && !empty($_FILES['receipts']['name'][0])) {
         $targetDir = "uploads/";
+        
         foreach ($_FILES["receipts"]["name"] as $key => $fileName) {
             $fileTmpPath = $_FILES["receipts"]["tmp_name"][$key];
             $fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -45,11 +46,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Stocker les noms des fichiers sous forme de chaîne séparée par des virgules
-    $receiptPathsStr = implode(",", $receiptPaths);
+    $receiptPathsStr = !empty($receiptPaths) ? implode(",", $receiptPaths) : NULL;
 
     // Insérer les données en base
     $stmt = $pdo->prepare("INSERT INTO expenses (user_id, date, amount, category, justification, receipt) VALUES (?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$user_id, $date, $amount, $category, $justification ?? NULL, $receiptPathsStr])) {
+    if ($stmt->execute([$user_id, $date, $amount, $category, $justification, $receiptPathsStr])) {
         header("Location: dashboard.php?success=1");
         exit();
     } else {
