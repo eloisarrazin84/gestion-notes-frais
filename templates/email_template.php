@@ -1,5 +1,5 @@
 <?php
-function getEmailTemplate($title, $message, $buttonText = null, $buttonLink = null) {
+function renderEmailTemplate($name, $expenseId, $status, $reason = '') {
     return '
     <!DOCTYPE html>
     <html lang="fr">
