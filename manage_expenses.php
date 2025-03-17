@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'permissions.php';
 require_once 'mail.php';
-require_once 'email_template.php';
+require_once 'templates/email_template.php';
 
 if (!hasPermission('manager') && !hasPermission('comptable') && !hasPermission('admin')) {
     die("Accès refusé.");
