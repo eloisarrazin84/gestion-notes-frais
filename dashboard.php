@@ -12,7 +12,6 @@ $user_id = $_SESSION['user_id'];
 $canValidate = hasPermission('manager');
 $canViewAll = hasPermission('comptable') || hasPermission('admin');
 
-// Récupération des notes de frais de l'utilisateur connecté uniquement
 $stmt = $pdo->prepare("SELECT * FROM expenses WHERE user_id = ? ORDER BY created_at DESC");
 $stmt->execute([$user_id]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -53,7 +52,8 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container mt-5">
         <h2 class="text-center">Mes Notes de Frais</h2>
         <a href="home.php" class="btn btn-secondary btn-back">🏠 Retour à l'accueil</a>
-        <table class="table table-striped">
+        <a href="export_pdf.php" class="btn btn-primary">📄 Exporter en PDF</a>
+        <table class="table table-striped mt-3">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -71,11 +71,16 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= htmlspecialchars($expense['category']) ?></td>
                         <td><?= htmlspecialchars($expense['status']) ?></td>
                         <td>
-                            <?php if (!empty($expense['receipt'])): ?>
-                                <a href="uploads/<?= htmlspecialchars(trim($expense['receipt'])) ?>" class="btn btn-secondary btn-sm">📂 Voir</a>
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
+                            <?php 
+                            if (!empty($expense['receipt'])) {
+                                $receipts = explode(",", $expense['receipt']);
+                                foreach ($receipts as $receipt) {
+                                    echo '<a href="uploads/' . htmlspecialchars(trim($receipt)) . '" class="btn btn-secondary btn-sm me-1">📂 Voir</a>';
+                                }
+                            } else {
+                                echo "-";
+                            }
+                            ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -101,8 +106,8 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </select>
             </div>
             <div class="mb-3">
-                <label for="receipt" class="form-label">Justificatif</label>
-                <input type="file" name="receipt" id="receipt" class="form-control">
+                <label for="receipts" class="form-label">Justificatif(s)</label>
+                <input type="file" name="receipts[]" id="receipts" class="form-control" multiple>
             </div>
             <button type="submit" class="btn btn-primary">Ajouter</button>
         </form>
