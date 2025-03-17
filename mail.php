@@ -16,6 +16,10 @@ function sendEmail($to, $subject, $body) {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
+        // Encodage UTF-8 pour éviter les problèmes d'accents
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
+
         // Expéditeur et destinataire
         $mail->setFrom('eloi@bewitness.fr', 'Gestion Notes de Frais');
         $mail->addAddress($to);
