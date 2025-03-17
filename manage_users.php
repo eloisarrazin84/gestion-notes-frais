@@ -115,7 +115,6 @@ $users = $pdo->query("SELECT id, name, email, role FROM users")->fetchAll();
                     <th>Nom</th>
                     <th>Email</th>
                     <th>Rôle</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
