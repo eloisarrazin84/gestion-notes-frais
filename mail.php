@@ -4,7 +4,7 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-function sendEmail($to, $subject, $body) {
+function sendEmail($to, $subject, $body, $buttonText = '', $buttonLink = '') {
     $mail = new PHPMailer(true);
     try {
         // Configuration du serveur SMTP
@@ -24,10 +24,12 @@ function sendEmail($to, $subject, $body) {
         $mail->setFrom('eloi@bewitness.fr', 'Gestion Notes de Frais');
         $mail->addAddress($to);
 
-        // Contenu de l'email
+        // Contenu de l'email avec le template
+        $emailBody = renderEmailTemplate($subject, $body, $buttonText, $buttonLink);
+
         $mail->isHTML(true);
         $mail->Subject = $subject;
-        $mail->Body = renderEmailTemplate($subject, $message, $buttonText, $buttonLink); // Utilisation du template
+        $mail->Body = $emailBody;
 
         // Envoi de l'email
         $mail->send();
@@ -37,6 +39,7 @@ function sendEmail($to, $subject, $body) {
         return false;
     }
 }
+
 
 // Notifications pour workflow des notes de frais
 function sendExpenseSubmissionEmail($to, $expenseId) {
